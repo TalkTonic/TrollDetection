@@ -69,18 +69,17 @@ def get_pairs_leftovers(user_interest_list):
 	paired = set()
 	pairings = []
 
-	for i in range(0, 0):
-		print i
+	for i in range(0, 1):
 		if len(user_interest_list) == len(paired):
 			break
 		# expand interests to include related words of all form (except antonyms)
 		for user in user_interest_list:
+			temp_interests = list(user[1])
 			for interest in user[1]:
 				for synset in wn.synsets(interest):
 					for lemma_name in synset.lemma_names():
-						if lemma_name not in user[1]:
-							print "append."
-							user[1].append(lemma_name)
+						if lemma_name not in temp_interests and lemma_name not in user[1]:
+							temp_interests.append(lemma_name)
 					# for hyponym in synset.hyponyms():
 					# 	if hyponym not in user[1]:
 					# 		user[1].append(hyponym)
@@ -99,6 +98,7 @@ def get_pairs_leftovers(user_interest_list):
 					# for entailment in synset.entailments():
 					# 	if entailment not in user[1]:
 					# 		user[1].append(entailment)
+			user = (user[0], temp_interests)
 
 		# generate new user_interest_list from thus-unpaired users
 		sub_user_interest_list = []
@@ -196,7 +196,7 @@ def get_pairs(user_interest_list):
 			leftovers = leftovers + sub_user_interest_list
 		elif len(sub_user_interest_list) > 1:
 			temp_pairings, temp_leftovers = get_pairs_subgraph(sub_user_interest_list)
-			pairings.append(temp_pairings)
+			pairings = pairings + temp_pairings
 			temp_leftover_tuples = []
 			for user in user_interest_list:
 				for temp_leftover in temp_leftovers:
@@ -204,10 +204,10 @@ def get_pairs(user_interest_list):
 						temp_leftover_tuples.append(user)
 			leftovers = leftovers + temp_leftover_tuples
 	temp_pairings, temp_leftover = get_pairs_leftovers(leftovers)
-	pairings.append(temp_pairings)
+	pairings = pairings + temp_pairings
 
 	# return the list of pairings and the leftover
 	return (pairings, temp_leftover)
 
-user_interest_list = [('a', ['1']), ('b', ['1']), ('c', ['1']), ('d', ['2'])]
+user_interest_list = [('trav', ['code']), ('sid', ['code']), ('matt', ['code']), ('parth', ['sleep']), ('stranger', ['eat'])]
 print get_pairs(user_interest_list)
