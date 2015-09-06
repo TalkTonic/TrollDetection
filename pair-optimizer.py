@@ -69,7 +69,7 @@ def get_pairs_leftovers(user_interest_list):
 	paired = set()
 	pairings = []
 
-	for i in range(0, 5):
+	for i in range(0, 0):
 		print i
 		if len(user_interest_list) == len(paired):
 			break
@@ -114,7 +114,7 @@ def get_pairs_leftovers(user_interest_list):
 
 	# pair extraneous leftovers
 	for i in range(0, len(user_interest_list)):
-		for j in range(i, len(user_interest_list)):
+		for j in range(i + 1, len(user_interest_list)):
 			if user_interest_list[i][0] not in paired and user_interest_list[j][0] not in paired:
 				pairings.append((user_interest_list[i][0], user_interest_list[j][0]))
 				paired.add(user_interest_list[i][0])
@@ -123,7 +123,7 @@ def get_pairs_leftovers(user_interest_list):
 	# the leftover is the only one not to be paired
 	leftover = None
 	for user in user_interest_list:
-		if user[0] not in pairings:
+		if user[0] not in paired:
 			leftover = user[0]
 
 	# return the pairings and leftover
@@ -191,7 +191,6 @@ def get_pairs(user_interest_list):
 	# compute the optimal pairings for subgraphs using helper functions
 	pairings = []
 	leftovers = []
-	print user_interest_list
 	for sub_user_interest_list in user_interest_tuple_list:
 		if len(sub_user_interest_list) == 1:
 			leftovers = leftovers + sub_user_interest_list
@@ -211,4 +210,4 @@ def get_pairs(user_interest_list):
 	return (pairings, temp_leftover)
 
 user_interest_list = [('a', ['1']), ('b', ['1']), ('c', ['1']), ('d', ['2'])]
-get_pairs(user_interest_list)
+print get_pairs(user_interest_list)
