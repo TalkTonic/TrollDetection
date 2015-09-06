@@ -31,10 +31,13 @@ def get_pairs_subgraph(user_interest_list):
 	centrality_vector = []
 	for vector in eigenvectors_lists:
 		all_positive = True
+		all_negative = True
 		for element in vector:
 			if element < 0:
 				all_positive = False
-		if all_positive:
+			if element > 0:
+				all_negative = False
+		if all_positive or all_negative:
 			centrality_vector = vector
 	
 	# sort the users based on their centrality, map sorted indices to unsorted ones
@@ -80,24 +83,6 @@ def get_pairs_leftovers(user_interest_list):
 					for lemma_name in synset.lemma_names():
 						if lemma_name not in temp_interests and lemma_name not in user[1]:
 							temp_interests.append(lemma_name)
-					# for hyponym in synset.hyponyms():
-					# 	if hyponym not in user[1]:
-					# 		user[1].append(hyponym)
-					# for hypernym in synset.hypernyms():
-					# 	if hypernym not in user[1]:
-					# 		user[1].append(hypernym)
-					# for part_meronym in synset.part_meronyms():
-					# 	if part_meronym not in user[1]:
-					# 		user[1].append(part_meronym)
-					# for substance_meronym in synset.substance_meronyms():
-					# 	if substance_meronym not in user[1]:
-					# 		user[1].append(substance_meronym)
-					# for holonym in synset.holonyms():
-					# 	if holonym not in user[1]:
-					# 		user[1].append(holonym)
-					# for entailment in synset.entailments():
-					# 	if entailment not in user[1]:
-					# 		user[1].append(entailment)
 			user = (user[0], temp_interests)
 
 		# generate new user_interest_list from thus-unpaired users
@@ -209,5 +194,5 @@ def get_pairs(user_interest_list):
 	# return the list of pairings and the leftover
 	return (pairings, temp_leftover)
 
-user_interest_list = [('trav', ['code']), ('sid', ['code']), ('matt', ['code']), ('parth', ['sleep']), ('stranger', ['eat'])]
+user_interest_list = [('adam', ['code', 'eat', 'walk']), ('barbara', ['code', 'sleep']), ('chris', ['sleep', 'eat']), ('debra', ['slumber', 'eat']), ('ernest', ['eat', 'code', 'walk']), ('farah', ['slumber']), ('herman', ['slumber'])]
 print get_pairs(user_interest_list)
