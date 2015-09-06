@@ -76,14 +76,14 @@ def get_pairs_leftovers(user_interest_list):
 		if len(user_interest_list) == len(paired):
 			break
 		# expand interests to include related words of all form (except antonyms)
-		for user in user_interest_list:
-			temp_interests = list(user[1])
-			for interest in user[1]:
+		for i in range(0, len(user_interest_list)):
+			temp_interests = list(user_interest_list[i][1])
+			for interest in user_interest_list[i][1]:
 				for synset in wn.synsets(interest):
 					for lemma_name in synset.lemma_names():
-						if lemma_name not in temp_interests and lemma_name not in user[1]:
+						if lemma_name not in temp_interests and lemma_name not in user_interest_list[i][1]:
 							temp_interests.append(lemma_name)
-			user = (user[0], temp_interests)
+			user_interest_list[i] = (user_interest_list[i][0], temp_interests)
 
 		# generate new user_interest_list from thus-unpaired users
 		sub_user_interest_list = []
@@ -96,6 +96,7 @@ def get_pairs_leftovers(user_interest_list):
 		for pair in temp_pairings:
 			paired.add(pair[0])
 			paired.add(pair[1])
+			pairings.append((pair[0], pair[1]))
 
 	# pair extraneous leftovers
 	for i in range(0, len(user_interest_list)):
@@ -194,5 +195,5 @@ def get_pairs(user_interest_list):
 	# return the list of pairings and the leftover
 	return (pairings, temp_leftover)
 
-user_interest_list = [('adam', ['code', 'eat', 'walk']), ('barbara', ['code', 'sleep']), ('chris', ['sleep', 'eat']), ('debra', ['slumber', 'eat']), ('ernest', ['eat', 'code', 'walk']), ('farah', ['slumber']), ('herman', ['slumber'])]
+user_interest_list = [('adam', ['sleep']), ('barbara', ['code']), ('chris', ['slumber'])]
 print get_pairs(user_interest_list)
