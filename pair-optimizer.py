@@ -67,10 +67,11 @@ def get_pairs_subgraph(user_interest_list):
 def get_pairs_leftovers(user_interest_list):
 	paired = set()
 	pairings = []
-	leftovers = []
 
 	for i in range(0, 5):
-		# expand interests to include interest synonyms
+		if len(user_interest_list) == len(paired):
+			break
+		# expand interests to include related words of all form (except antonyms)
 		for user in user_interest_list:
 			for interest in user[1]:
 				for synset in wn.synsets(interest):
@@ -96,11 +97,34 @@ def get_pairs_leftovers(user_interest_list):
 						if entailment not in user[1]:
 							user[1].append(entailment)
 
-		# generate new 
+		# generate new user_interest_list from thus-unpaired users
+		sub_user_interest_list = []
+		for i in range(0, len(user_interest_list)):
+			if user_interest_list[i][0] not in paired:
+				sub_user_interest_list.append(user_interest_list[i])
 
 		# try getting pairs now
-		temp_pairings, temp_leftovers = get_pairs_subgraph(user_interest_list)
+		temp_pairings, temp_leftovers = get_pairs_subgraph(sub_user_interest_list)
+		for pair in temp_pairings:
+			paired.add(pair[0])
+			paired.add(pair[1])
 
+	# pair extraneous leftovers
+	for i in range(0, len(user_interest_list)):
+		for j in range(i, len(user_interest_list)):
+			if user_interest_list[i][0] not in paired and user_interest_list[j][0] not in paired:
+				pairings.append((user_interest_list[i][0], user_interest_list[j][0]))
+				paired.add(user_interest_list[i][0])
+				paired.add(user_interest_list[j][0])
+
+	# the leftover is the only one not to be paired
+	leftover = None
+	for user in user_interest_list:
+		if user[0] not in pairings:
+			leftover = user[0]
+
+	# return the pairings and leftover
+	return (pairings, leftover)
 
 def get_pairs(user_interest_list):
 	# create a graph where users are nodes and edges are shared interests
