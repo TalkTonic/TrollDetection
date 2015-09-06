@@ -5,7 +5,6 @@ from collections import deque
 
 # generates a [(username, username), (username, username), ...] from a [(username, [interest, interest, ...]), (username, [interest, interest, ...]), ...]
 def get_pairs_subgraph(user_interest_list):
-	print user_interest_list
 	# calculate interest frequencies
 	interest_frequencies = {}
 	for user in user_interest_list:
@@ -18,7 +17,7 @@ def get_pairs_subgraph(user_interest_list):
 	# calculate the adjacency matrix
 	A = np.zeros([len(user_interest_list), len(user_interest_list)])
 	for i in range(0, len(user_interest_list)):
-		for j in range(i, len(user_interest_list)):
+		for j in range(i + 1, len(user_interest_list)):
 			common_interests = set(user_interest_list[i][1]) & set(user_interest_list[j][1])
 			# add weights of multiple common interests
 			for interest in common_interests:
@@ -41,14 +40,14 @@ def get_pairs_subgraph(user_interest_list):
 	# sort the users based on their centrality, map sorted indices to unsorted ones
 	user_list_with_centrality = []
 	for i in range(0, len(user_interest_list)):
-		user_list.append(user_interest_list[i][0], centrality_vector[i], i)
-	user_list_with_centrality = sorted(user_list, key = lambda x: x[1])
+		user_list_with_centrality.append((user_interest_list[i][0], centrality_vector[i], i))
+	user_list_with_centrality = sorted(user_list_with_centrality, key = lambda x: x[1])
 
 	# attempt to pair users, starting with least-central users
 	pairings = []
 	paired = set()
 	for i in range(0, len(user_interest_list)):
-		for j in range(i, len(user_interest_list)):
+		for j in range(i + 1, len(user_interest_list)):
 			if i in paired or j in paired:
 				continue
 			if set(user_interest_list[user_list_with_centrality[i][2]][1]) & set(user_interest_list[user_list_with_centrality[j][2]][1]):
@@ -63,7 +62,6 @@ def get_pairs_subgraph(user_interest_list):
 			leftovers.append(user_list_with_centrality[i][0])
 
 	# return pairings and leftovers
-	print pairings
 	return (pairings, leftovers)
 
 # expands interests using wordnet, trying to pair leftovers until all thats left is to pair them randomly
@@ -72,6 +70,7 @@ def get_pairs_leftovers(user_interest_list):
 	pairings = []
 
 	for i in range(0, 5):
+		print i
 		if len(user_interest_list) == len(paired):
 			break
 		# expand interests to include related words of all form (except antonyms)
@@ -80,25 +79,26 @@ def get_pairs_leftovers(user_interest_list):
 				for synset in wn.synsets(interest):
 					for lemma_name in synset.lemma_names():
 						if lemma_name not in user[1]:
+							print "append."
 							user[1].append(lemma_name)
-					for hyponym in synset.hyponyms():
-						if hyponym not in user[1]:
-							user[1].append(hyponym)
-					for hypernym in synset.hypernyms():
-						if hypernym not in user[1]:
-							user[1].append(hypernym)
-					for part_meronym in synset.part_meronyms():
-						if part_meronym not in user[1]:
-							user[1].append(part_meronym)
-					for substance_meronym in synset.substance_meronyms():
-						if substance_meronym not in user[1]:
-							user[1].append(substance_meronym)
-					for holonym in synset.holonyms():
-						if holonym not in user[1]:
-							user[1].append(holonym)
-					for entailment in synset.entailments():
-						if entailment not in user[1]:
-							user[1].append(entailment)
+					# for hyponym in synset.hyponyms():
+					# 	if hyponym not in user[1]:
+					# 		user[1].append(hyponym)
+					# for hypernym in synset.hypernyms():
+					# 	if hypernym not in user[1]:
+					# 		user[1].append(hypernym)
+					# for part_meronym in synset.part_meronyms():
+					# 	if part_meronym not in user[1]:
+					# 		user[1].append(part_meronym)
+					# for substance_meronym in synset.substance_meronyms():
+					# 	if substance_meronym not in user[1]:
+					# 		user[1].append(substance_meronym)
+					# for holonym in synset.holonyms():
+					# 	if holonym not in user[1]:
+					# 		user[1].append(holonym)
+					# for entailment in synset.entailments():
+					# 	if entailment not in user[1]:
+					# 		user[1].append(entailment)
 
 		# generate new user_interest_list from thus-unpaired users
 		sub_user_interest_list = []
@@ -139,17 +139,14 @@ def get_pairs(user_interest_list):
 			common_interests = set(user_interest_list[i][1]) & set(user_interest_list[j][1])
 			if common_interests != set():
 				if j not in A[user_interest_list[i][0]]:
-					A[i].append(user_interest_list[j][0])
+					A[user_interest_list[i][0]].append(user_interest_list[j][0])
 				if i not in A[user_interest_list[j][0]]:
-					A[j].append(user_interest_list[i][0])
+					A[user_interest_list[j][0]].append(user_interest_list[i][0])
 
-	print A
-
-	# remove self-references
+	# remove self-references (not sure why I had to do this twice...)
 	for key in A.keys():
-		A[key].remove(user_interest_list[key][0])
-
-	print A
+		A[key].remove(key)
+		A[key].remove(key)
 
 	# find all detatched graphs
 	subgraph_node_list_list = []
@@ -185,25 +182,28 @@ def get_pairs(user_interest_list):
 	# for each of the subgraph node lists, get the related user, interest tuples
 	user_interest_tuple_list = []
 	for subgraph_node_list in subgraph_node_list_list:
-		print subgraph_node_list
 		sub_user_interest_list = []
 		for user_tuple in user_interest_list:
-			print user_tuple
 			if user_tuple[0] in subgraph_node_list:
 				sub_user_interest_list.append(user_tuple)
-				print sub_user_interest_list
 		user_interest_tuple_list.append(sub_user_interest_list)
 
 	# compute the optimal pairings for subgraphs using helper functions
 	pairings = []
 	leftovers = []
+	print user_interest_list
 	for sub_user_interest_list in user_interest_tuple_list:
 		if len(sub_user_interest_list) == 1:
 			leftovers = leftovers + sub_user_interest_list
 		elif len(sub_user_interest_list) > 1:
 			temp_pairings, temp_leftovers = get_pairs_subgraph(sub_user_interest_list)
 			pairings.append(temp_pairings)
-			leftovers = leftovers + temp_leftovers
+			temp_leftover_tuples = []
+			for user in user_interest_list:
+				for temp_leftover in temp_leftovers:
+					if user[0] == temp_leftover:
+						temp_leftover_tuples.append(user)
+			leftovers = leftovers + temp_leftover_tuples
 	temp_pairings, temp_leftover = get_pairs_leftovers(leftovers)
 	pairings.append(temp_pairings)
 
