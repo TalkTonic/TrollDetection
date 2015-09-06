@@ -1,9 +1,11 @@
 import numpy as np
 from numpy import linalg as LA
 from nltk.corpus import wordnet as wn
+from collections import deque
 
 # generates a [(username, username), (username, username), ...] from a [(username, [interest, interest, ...]), (username, [interest, interest, ...]), ...]
 def get_pairs_subgraph(user_interest_list):
+	print user_interest_list
 	# calculate interest frequencies
 	interest_frequencies = {}
 	for user in user_interest_list:
@@ -61,6 +63,7 @@ def get_pairs_subgraph(user_interest_list):
 			leftovers.append(user_list_with_centrality[i][0])
 
 	# return pairings and leftovers
+	print pairings
 	return (pairings, leftovers)
 
 # expands interests using wordnet, trying to pair leftovers until all thats left is to pair them randomly
@@ -75,25 +78,25 @@ def get_pairs_leftovers(user_interest_list):
 		for user in user_interest_list:
 			for interest in user[1]:
 				for synset in wn.synsets(interest):
-					for lemma_name in synset.lemma_names()
+					for lemma_name in synset.lemma_names():
 						if lemma_name not in user[1]:
 							user[1].append(lemma_name)
-					for hyponym in synset.hyponyms()
+					for hyponym in synset.hyponyms():
 						if hyponym not in user[1]:
 							user[1].append(hyponym)
-					for hypernym in synset.hypernyms()
+					for hypernym in synset.hypernyms():
 						if hypernym not in user[1]:
 							user[1].append(hypernym)
-					for part_meronym in synset.part_meronyms()
+					for part_meronym in synset.part_meronyms():
 						if part_meronym not in user[1]:
 							user[1].append(part_meronym)
-					for substance_meronym in synset.substance_meronyms()
+					for substance_meronym in synset.substance_meronyms():
 						if substance_meronym not in user[1]:
 							user[1].append(substance_meronym)
-					for holonym in synset.holonyms()
+					for holonym in synset.holonyms():
 						if holonym not in user[1]:
 							user[1].append(holonym)
-					for entailment in synset.entailments()
+					for entailment in synset.entailments():
 						if entailment not in user[1]:
 							user[1].append(entailment)
 
@@ -130,24 +133,37 @@ def get_pairs(user_interest_list):
 	# create a graph where users are nodes and edges are shared interests
 	A = {}
 	for i in range(0, len(user_interest_list)):
-		A[i] = []
+		A[user_interest_list[i][0]] = []
+	for i in range(0, len(user_interest_list)):
 		for j in range(i, len(user_interest_list)):
 			common_interests = set(user_interest_list[i][1]) & set(user_interest_list[j][1])
 			if common_interests != set():
-				A[i].append(j)
-				A[j].append(i)
+				if j not in A[user_interest_list[i][0]]:
+					A[i].append(user_interest_list[j][0])
+				if i not in A[user_interest_list[j][0]]:
+					A[j].append(user_interest_list[i][0])
+
+	print A
+
+	# remove self-references
+	for key in A.keys():
+		A[key].remove(user_interest_list[key][0])
+
+	print A
 
 	# find all detatched graphs
 	subgraph_node_list_list = []
 	visited = set()
-	fringe = []
+	fringe = deque([])
 	while True:
 		# find an unvisited node - we will make a subgraph of all connected nodes
 		done = True
 		for node in A.keys():
 			if node not in visited:
 				fringe.append(node)
+				visited.add(node)
 				done = False
+				break
 
 		# if we did not find any unvisited nodes, our work here is done
 		if done:
@@ -157,10 +173,11 @@ def get_pairs(user_interest_list):
 		subgraph_node_list = []
 		while fringe:
 			node = fringe.popleft()
-			subgraph.append(node)
+			subgraph_node_list.append(node)
 			for edge in A[node]:
 				if edge not in visited:
 					fringe.append(edge)
+					visited.add(edge)
 
 		# add that subgraph to our list of subgraph node lists
 		subgraph_node_list_list.append(subgraph_node_list)
@@ -168,10 +185,13 @@ def get_pairs(user_interest_list):
 	# for each of the subgraph node lists, get the related user, interest tuples
 	user_interest_tuple_list = []
 	for subgraph_node_list in subgraph_node_list_list:
+		print subgraph_node_list
 		sub_user_interest_list = []
 		for user_tuple in user_interest_list:
+			print user_tuple
 			if user_tuple[0] in subgraph_node_list:
 				sub_user_interest_list.append(user_tuple)
+				print sub_user_interest_list
 		user_interest_tuple_list.append(sub_user_interest_list)
 
 	# compute the optimal pairings for subgraphs using helper functions
@@ -180,7 +200,7 @@ def get_pairs(user_interest_list):
 	for sub_user_interest_list in user_interest_tuple_list:
 		if len(sub_user_interest_list) == 1:
 			leftovers = leftovers + sub_user_interest_list
-		else:
+		elif len(sub_user_interest_list) > 1:
 			temp_pairings, temp_leftovers = get_pairs_subgraph(sub_user_interest_list)
 			pairings.append(temp_pairings)
 			leftovers = leftovers + temp_leftovers
@@ -191,4 +211,4 @@ def get_pairs(user_interest_list):
 	return (pairings, temp_leftover)
 
 user_interest_list = [('a', ['1']), ('b', ['1']), ('c', ['1']), ('d', ['2'])]
-print get_pairs(user_interest_list)
+get_pairs(user_interest_list)
