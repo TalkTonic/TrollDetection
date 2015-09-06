@@ -1,0 +1,14 @@
+import requests
+import numpy as np
+import datetime
+import time
+import json
+import random
+from matplotlib import pyplot as p
+import nltk
+from nltk import word_tokenize
+from alchemyapi import AlchemyAPI
+import plotly.plotly as py
+import plotly.tools as tls
+from plotly.graph_objs import
+
