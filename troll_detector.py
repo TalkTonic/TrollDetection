@@ -61,13 +61,16 @@ def targeted_sentiment(message):
                                         text += token
                                         text += " "
                                 alchemyapi_result = alchemyapi.sentiment_targeted("text", text, target)
-                                if alchemyapi_result["docSentiment"]["type"] != "neutral":
-                                        try:
-                                                sentiment_list.append(float(alchemyapi_result["docSentiment"]["score"]))
-                                        except:
-                                                print "ALCHEMY API PROBLEM! <troll-detector.py>", alchemyapi_result
-                                else:
-                                        sentiment_list.append(float(0))
+                                try:
+                                        if alchemyapi_result["docSentiment"]["type"] != "neutral":
+                                                try:
+                                                        sentiment_list.append(float(alchemyapi_result["docSentiment"]["score"]))
+                                                except:
+                                                        print "ALCHEMY API PROBLEM! <troll-detector.py>", alchemyapi_result
+                                        else:
+                                                sentiment_list.append(float(0))
+                                except:
+                                        print alchemyapi_result
         if len(sentiment_list) == 0:
                 
                 try:
