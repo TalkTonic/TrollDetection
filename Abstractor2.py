@@ -69,6 +69,8 @@ N = 200  # number of points to be plotted
 # Delay start of stream by 5 sec (time to switch tabs)
 time.sleep(5)
 abstractcounter = 0
+
+zeta = raw_input("Select the Conversation Number")
 while True:
     i += 1   # add to counter
 
@@ -85,8 +87,8 @@ while True:
 
     tar = requests.get(matt2)
     rawsource  = tar.json() #get loaded JSON
-    
-    zeta = '0'
+
+   
 
     u = Abstractor.access1(zeta,rawsource)
 
@@ -96,6 +98,8 @@ while True:
     if abstractcounter < len(firstlist):
         
         y =  firstlist[abstractcounter]
+        
+        
         
         abstractcounter +=1
 

@@ -69,7 +69,11 @@ def targeted_sentiment(message):
                                 else:
                                         sentiment_list.append(float(0))
         if len(sentiment_list) == 0:
-                return [0]
+                
+                try:
+                        return [(.8)*float(alchemyapi.sentiment("text",message)['docSentiment']['score'])]
+                except:
+                        return [0]
 
         # return the list of results of all the sentiment queries
         return sentiment_list
